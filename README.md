@@ -53,8 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "You're a friendly assistant", // System prompt
         "gpt-oss:20b", // Model name
         None, // API key (if needed)
-        None, // Organization (if needed)
-        None, // Additional config
+        None, // Temperature of range 0.0 - 1.0
+        None, // Max Tokens
     )?;
 
     agent.run().await?;
