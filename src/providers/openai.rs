@@ -1,12 +1,13 @@
 use rig::{
-    agent::{Agent, AgentBuilder},
+    agent::{Agent, AgentBuilder, WithBuilderTools},
     client::CompletionClient as _,
     completion::Prompt,
     providers::openai::{self, responses_api::ResponsesCompletionModel},
+    tool::Tool,
 };
 use schemars::JsonSchema;
 
-use crate::{Providers, error::Error, providers::CompletionProvider};
+use crate::{Providers, error::Error, providers::CompletionProvider, tools::ToolWrapper};
 
 pub struct OpenAIProvider {
     api_key: String,
@@ -18,39 +19,51 @@ impl OpenAIProvider {
         Self { api_key, model }
     }
 
-    pub fn build(
+    pub fn build<T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<OpenAI, Error> {
-        let agent = builder(
+        let builder = builder(
             &self.api_key,
             &self.model,
             system_message,
             temperature,
             max_tokens,
-        )?
-        .build();
+        )?;
+
+        let agent = if let Some(tool) = tool {
+            builder_with_tools(builder, tool)?.build()
+        } else {
+            builder.build()
+        };
 
         Ok(OpenAI { agent })
     }
 
-    pub fn build_with_schema<T: JsonSchema>(
+    pub fn build_with_schema<J: JsonSchema, T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<OpenAI, Error> {
-        let agent = builder(
+        let builder = builder(
             &self.api_key,
             &self.model,
             system_message,
             temperature,
             max_tokens,
         )?
-        .output_schema::<T>()
-        .build();
+        .output_schema::<J>();
+
+        let agent = if let Some(tool) = tool {
+            builder_with_tools(builder, tool)?.build()
+        } else {
+            builder.build()
+        };
 
         Ok(OpenAI { agent })
     }
@@ -62,28 +75,30 @@ pub struct OpenAI {
 }
 
 impl OpenAI {
-    pub fn new(
+    pub fn new<T: Tool + 'static>(
         api_key: &str,
         model: &str,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<Self, Error> {
         let provider = OpenAIProvider::new(api_key.to_string(), model.to_string());
 
-        provider.build(system_message, temperature, max_tokens)
+        provider.build(system_message, temperature, max_tokens, tool)
     }
 
-    pub fn new_with_schema<T: JsonSchema>(
+    pub fn new_with_schema<J: JsonSchema, T: Tool + 'static>(
         api_key: &str,
         model: &str,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<Self, Error> {
         let provider = OpenAIProvider::new(api_key.to_string(), model.to_string());
 
-        provider.build_with_schema::<T>(system_message, temperature, max_tokens)
+        provider.build_with_schema::<J, T>(system_message, temperature, max_tokens, tool)
     }
 }
 
@@ -126,8 +141,16 @@ pub fn builder(
         .agent(model)
         .preamble(system_message.unwrap_or_default())
         .temperature(temperature.unwrap_or_default())
-        // .tool(tool)
         .max_tokens(max_tokens.unwrap_or_default());
+
+    Ok(builder)
+}
+
+pub fn builder_with_tools<T: Tool + 'static>(
+    builder: AgentBuilder<ResponsesCompletionModel>,
+    tool: ToolWrapper<T>,
+) -> Result<AgentBuilder<ResponsesCompletionModel, (), WithBuilderTools>, Error> {
+    let builder = builder.tool(*tool.tool());
 
     Ok(builder)
 }

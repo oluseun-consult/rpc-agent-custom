@@ -1,12 +1,13 @@
 use rig::{
-    agent::{Agent, AgentBuilder},
+    agent::{Agent, AgentBuilder, WithBuilderTools},
     client::{CompletionClient as _, Nothing},
     completion::Prompt as _,
     providers::ollama::{self, CompletionModel},
+    tool::Tool,
 };
 use schemars::JsonSchema;
 
-use crate::{Providers, error::Error, providers::CompletionProvider};
+use crate::{Providers, error::Error, providers::CompletionProvider, tools::ToolWrapper};
 
 pub struct OllamaProvider {
     model: String,
@@ -17,26 +18,39 @@ impl OllamaProvider {
         Self { model }
     }
 
-    pub fn build(
+    pub fn build<T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<OllamaAI, Error> {
-        let agent = builder(&self.model, system_message, temperature, max_tokens)?.build();
+        let builder = builder(&self.model, system_message, temperature, max_tokens)?;
+
+        let agent = if let Some(tool) = tool {
+            builder_with_tools(builder, tool)?.build()
+        } else {
+            builder.build()
+        };
 
         Ok(OllamaAI { agent })
     }
 
-    pub fn build_with_schema<T: JsonSchema>(
+    pub fn build_with_schema<J: JsonSchema, T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<OllamaAI, Error> {
-        let agent = builder(&self.model, system_message, temperature, max_tokens)?
-            .output_schema::<T>()
-            .build();
+        let builder =
+            builder(&self.model, system_message, temperature, max_tokens)?.output_schema::<J>();
+
+        let agent = if let Some(tool) = tool {
+            builder_with_tools(builder, tool)?.build()
+        } else {
+            builder.build()
+        };
 
         Ok(OllamaAI { agent })
     }
@@ -48,26 +62,28 @@ pub struct OllamaAI {
 }
 
 impl OllamaAI {
-    pub fn new(
+    pub fn new<T: Tool + 'static>(
         model: &str,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<Self, Error> {
         let provider = OllamaProvider::new(model.to_string());
 
-        provider.build(system_message, temperature, max_tokens)
+        provider.build(system_message, temperature, max_tokens, tool)
     }
 
-    pub fn new_with_schema<T: JsonSchema>(
+    pub fn new_with_schema<J: JsonSchema, T: Tool + 'static>(
         model: &str,
         system_message: Option<&str>,
         temperature: Option<f64>,
         max_tokens: Option<u64>,
+        tool: Option<ToolWrapper<T>>,
     ) -> Result<Self, Error> {
         let provider = OllamaProvider::new(model.to_string());
 
-        provider.build_with_schema::<T>(system_message, temperature, max_tokens)
+        provider.build_with_schema::<J, T>(system_message, temperature, max_tokens, tool)
     }
 }
 
@@ -109,8 +125,16 @@ pub fn builder(
         .agent(model)
         .preamble(system_message.unwrap_or_default())
         .temperature(temperature.unwrap_or_default())
-        // .tool(tool)
         .max_tokens(max_tokens.unwrap_or_default());
+
+    Ok(builder)
+}
+
+pub fn builder_with_tools<T: Tool + 'static>(
+    builder: AgentBuilder<CompletionModel>,
+    tool: ToolWrapper<T>,
+) -> Result<AgentBuilder<CompletionModel, (), WithBuilderTools>, Error> {
+    let builder = builder.tool(*tool.tool());
 
     Ok(builder)
 }

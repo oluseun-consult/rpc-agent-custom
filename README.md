@@ -1,12 +1,12 @@
-# grpc-agent
+# rpc-agent
 
-> A modular Rust library for building gRPC-based agents with pluggable provider integrations.
+> A modular Rust library for building RPC-based agents with pluggable provider integrations.
 
 ---
 
 ## Overview
 
-**grpc-agent** is a Rust crate that lets you build resilient, extensible agents which talk to LLM services over gRPC. Leveraging the Rig framework, it supports multiple provider backends, currently OpenAI and Ollama, and is designed for straightforward extension and robust error handling.
+**rpc-agent** is a Rust crate that lets you build resilient, extensible agents which talk to LLM services over gRPC. Leveraging the Rig framework, it supports multiple provider backends, currently OpenAI and Ollama, and is designed for straightforward extension and robust error handling.
 
 ---
 
@@ -32,7 +32,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-grpc-agent = { path = "../grpc-agent" } # or use the published version if available
+rpc-agent = { path = "../rpc-agent" } # or use the published version if available
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 ```
 
@@ -40,24 +40,24 @@ tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 
 ## Example Usage
 
-Here is a minimal example of how to set up and run an Ollama gRPC agent:
+Here is a minimal example of how to set up and run an Ollama RPC agent:
 
 ```rust
-use grpc_agent::Providers;
+use rpc_agent::Providers;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let agent = grpc_agent::Agent::new(
-        5500, // Port
+    let builder = rpc_agent::AgentServerBuilder::new(
+        5500,
         Providers::Ollama,
-        "You're a friendly assistant", // System prompt
-        "gpt-oss:20b", // Model name
-        None, // API key (if needed)
-        None, // Temperature of range 0.0 - 1.0
-        None, // Max Tokens
-    )?;
+        "You're a friendly assistant",
+        "gpt-oss:20b",
+    );
 
-    agent.run().await?;
+    let server = builder?.build()?;
+
+    server.run().await?;
+
     Ok(())
 }
 ```
