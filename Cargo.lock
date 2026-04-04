@@ -491,20 +491,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
-name = "grpc-agent"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "futures",
- "rig-core",
- "schemars",
- "serde",
- "tarpc",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
 name = "h2"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1270,6 +1256,20 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "rpc-agent"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "rig-core",
+ "schemars",
+ "serde",
+ "tarpc",
+ "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]
