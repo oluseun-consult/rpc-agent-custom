@@ -19,7 +19,7 @@ pub trait CompletionProvider: Send + Sync {
     fn provider(&self) -> Providers;
 }
 
-#[derive(Clone)]
+/// Supported AI providers for the agent server.
 pub enum Providers {
     Ollama,
     OpenAI,

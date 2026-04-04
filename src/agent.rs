@@ -44,7 +44,7 @@ impl AgentServer {
 }
 
 #[tarpc::service]
-pub trait AgentWorker {
+trait AgentWorker {
     // TODO: Improve error handling. The error type must implement serde::Deserialize.
     async fn message(user_message: String) -> String;
 }

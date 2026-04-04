@@ -14,7 +14,6 @@ impl<T: Tool + 'static> ToolWrapper<T> {
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
 pub struct NoTool;
 
 impl Tool for NoTool {
