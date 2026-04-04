@@ -70,7 +70,9 @@ impl Providers {
             }
             Providers::OpenAI => {
                 let api_key = api_key.ok_or_else(|| {
-                    Error::ProviderError("api_key is required for openai provider".to_string())
+                    Error::AuthenticationError(
+                        "api_key is required for openai provider".to_string(),
+                    )
                 })?;
 
                 let client = openai::OpenAI::new(
@@ -108,7 +110,9 @@ impl Providers {
             }
             Providers::OpenAI => {
                 let api_key = api_key.ok_or_else(|| {
-                    Error::ProviderError("api_key is required for openai provider".to_string())
+                    Error::AuthenticationError(
+                        "api_key is required for openai provider".to_string(),
+                    )
                 })?;
 
                 let client = openai::OpenAI::new_with_schema::<J, T>(

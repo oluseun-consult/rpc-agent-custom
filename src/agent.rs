@@ -6,7 +6,7 @@ use tarpc::{
     tokio_serde::formats::Json,
 };
 
-use crate::{Error, providers::CompletionProvider};
+use crate::{Error, error::ApiError, providers::CompletionProvider};
 
 #[derive(Clone)]
 pub struct AgentServer {
@@ -45,14 +45,20 @@ impl AgentServer {
 
 #[tarpc::service]
 trait AgentWorker {
-    // TODO: Improve error handling. The error type must implement serde::Deserialize.
-    async fn message(user_message: String) -> String;
+    async fn message(user_message: String) -> Result<String, ApiError>;
 }
 
 impl AgentWorker for AgentServer {
     /// Handles a user message by passing it to the completion provider and returning the response.
-    async fn message(self, _context: ::tarpc::context::Context, user_message: String) -> String {
+    async fn message(
+        self,
+        _context: ::tarpc::context::Context,
+        user_message: String,
+    ) -> Result<String, ApiError> {
         println!("Message received");
-        self.providers.chat(&user_message).await.unwrap()
+        self.providers
+            .chat(&user_message)
+            .await
+            .map_err(ApiError::from)
     }
 }
