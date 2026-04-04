@@ -18,7 +18,7 @@ pub use builder::AgentServerBuilder;
 pub use tools::ToolWrapper;
 
 /// Error type used throughout the crate.
-pub use error::Error;
+pub use error::{ApiError, Error};
 
 /// Main agent server type, responsible for handling requests and managing tools/providers.
 pub use agent::AgentServer;

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -19,6 +21,12 @@ pub enum Error {
 pub struct ApiError {
     pub status: u16,
     pub message: String,
+}
+
+impl Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.status, self.message)
+    }
 }
 
 impl From<Error> for ApiError {
@@ -47,3 +55,5 @@ impl From<Error> for ApiError {
         }
     }
 }
+
+impl std::error::Error for ApiError {}
