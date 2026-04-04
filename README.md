@@ -32,7 +32,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rpc-agent = { path = "../rpc-agent" } # or use the published version if available
+rpc-agent = "0.1.1"
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 ```
 
@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "gpt-oss:20b",
     );
 
-    let server = builder?.build()?;
+    let server = builder.build()?;
 
     server.run().await?;
 
