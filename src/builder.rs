@@ -4,7 +4,8 @@ use rig::tool::Tool;
 use schemars::JsonSchema;
 
 use crate::{
-    AgentServer, Error, Providers,
+    AgentServer, Providers,
+    error::Error,
     tools::{NoTool, ToolWrapper},
 };
 

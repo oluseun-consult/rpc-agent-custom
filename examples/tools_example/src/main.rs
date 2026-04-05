@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 use rig::{completion::ToolDefinition, tool::Tool};
-use rpc_agent::{ApiError, Error, Providers, ToolWrapper};
+use rpc_agent::{Error, Providers, ToolWrapper};
 
 static TICKET_PRICE: LazyLock<HashMap<&str, u32>> = LazyLock::new(|| {
     HashMap::from([
@@ -39,19 +39,21 @@ pub struct Input {
 pub struct TicketPriceTool;
 
 impl TicketPriceTool {
-    fn get_ticket_price(airport: &str) -> Result<u32, ApiError> {
+    fn get_ticket_price(airport: &str) -> Result<u32, Error> {
         let airport = airport.to_lowercase();
         TICKET_PRICE
             .get(airport.as_str())
             .copied()
-            .ok_or(Error::ProviderError("No ticket price found for this destination".into()).into())
+            .ok_or(Error::ProviderError(
+                "No ticket price found for this destination".into(),
+            ))
     }
 }
 
 impl Tool for TicketPriceTool {
     const NAME: &'static str = "get_ticket_price";
 
-    type Error = ApiError;
+    type Error = Error;
     type Args = Input;
     type Output = u32;
 

@@ -3,6 +3,7 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+/// Error type used throughout the crate.
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("provider error: {0}")]
@@ -17,6 +18,7 @@ pub enum Error {
     Io(#[from] std::io::Error),
 }
 
+/// API error type used for provider-specific error responses.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ApiError {
     pub status: u16,

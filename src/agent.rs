@@ -6,7 +6,7 @@ use tarpc::{
     tokio_serde::formats::Json,
 };
 
-use crate::{Error, error::ApiError, providers::CompletionProvider};
+use crate::{error::ApiError, error::Error, providers::CompletionProvider};
 
 #[derive(Clone)]
 pub struct AgentServer {

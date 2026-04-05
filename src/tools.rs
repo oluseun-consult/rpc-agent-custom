@@ -1,20 +1,48 @@
 use rig::tool::Tool;
 
-use crate::Error;
+use crate::error::Error;
 
+/// A wrapper around a [`Tool`] that implements [`Clone`].
 #[derive(Clone)]
 pub struct ToolWrapper<T: Tool + 'static>(Box<T>);
 
 impl<T: Tool + 'static> ToolWrapper<T> {
+    /// Creates a new [`ToolWrapper`] with the given `struct` that implements the [`Tool`] trait.
+    ///
+    /// example:
+    /// ```
+    /// use rpc_agent::tools::ToolWrapper;
+    /// use rig::tool::Tool;
+    ///
+    /// struct MyTool;
+    ///
+    /// impl Tool for MyTool {
+    ///     const NAME: &'static str = "my_tool";
+    ///     type Error = anyhow::Error;
+    ///     type Args = ();
+    ///     type Output = ();
+    ///
+    ///     async fn definition(&self, _prompt: String) -> rig::completion::ToolDefinition {
+    ///         unreachable!("MyTool should never be used");
+    ///     }
+    ///
+    ///     async fn call(&self, _args: Self::Args) -> Result<Self::Output, Self::Error> {
+    ///         unreachable!("MyTool should never be used");
+    ///     }
+    /// }
+    ///
+    /// let tool = ToolWrapper::new(MyTool);
+    /// ```
     pub fn new(tool: T) -> Self {
         Self(Box::new(tool))
     }
-    pub fn tool(self) -> Box<T> {
+
+    pub(crate) fn tool(self) -> Box<T> {
         self.0
     }
 }
 
-pub struct NoTool;
+pub(crate) struct NoTool;
 
 impl Tool for NoTool {
     const NAME: &'static str = "";
