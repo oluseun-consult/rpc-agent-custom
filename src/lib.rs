@@ -7,21 +7,18 @@
 
 mod agent;
 mod builder;
-mod error;
+pub mod error;
 mod providers;
 mod tools;
+
+#[cfg(test)]
+mod tests;
 
 /// Builder for configuring and launching an [`AgentServer`].
 pub use builder::AgentServerBuilder;
 
 /// Wrapper type for integrating tools into the agent server.
 pub use tools::ToolWrapper;
-
-/// Error type used throughout the crate.
-pub use error::Error;
-
-/// API error type used for provider-specific error responses.
-pub use error::ApiError;
 
 /// Main agent server type, responsible for handling requests and managing tools/providers.
 pub use agent::AgentServer;

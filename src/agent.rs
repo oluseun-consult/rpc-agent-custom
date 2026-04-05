@@ -51,7 +51,7 @@ impl AgentServer {
     }
 
     #[cfg(test)]
-    pub(crate) fn _new(
+    pub(crate) fn new(
         socket_addr: SocketAddr,
         providers: Arc<Box<dyn CompletionProvider>>,
     ) -> Self {
@@ -63,7 +63,7 @@ impl AgentServer {
 }
 
 #[tarpc::service]
-trait AgentWorker {
+pub(crate) trait AgentWorker {
     async fn message(user_message: String) -> Result<String, ApiError>;
 }
 

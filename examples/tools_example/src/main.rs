@@ -1,7 +1,8 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 use rig::{completion::ToolDefinition, tool::Tool};
-use rpc_agent::{Error, Providers, ToolWrapper};
+use rpc_agent::error::Error;
+use rpc_agent::{Providers, ToolWrapper};
 
 static TICKET_PRICE: LazyLock<HashMap<&str, u32>> = LazyLock::new(|| {
     HashMap::from([

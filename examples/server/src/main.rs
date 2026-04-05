@@ -3,7 +3,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rpc_agent::ApiError;
+use rpc_agent::error::ApiError;
 use tarpc::{client, context, serde_transport::tcp, tokio_serde::formats::Json};
 
 #[tarpc::service]
