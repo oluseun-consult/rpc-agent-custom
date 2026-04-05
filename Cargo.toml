@@ -6,6 +6,7 @@ authors = ["Aminu 'Seun Joshua @seun.aminujoshua@gmail.com"]
 license = "MIT"
 description = "A modular Rust framework for building RPC-based agents with pluggable provider integrations"
 repository = "https://github.com/seun-ja/rpc-agent"
+documentation = "https://docs.rs/rpc-agent/0.1.1/rpc_agent/"
 
 [dependencies]
 async-trait = "0.1.89"

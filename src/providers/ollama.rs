@@ -119,9 +119,9 @@ pub fn builder(
     temperature: Option<f64>,
     max_tokens: Option<u64>,
 ) -> Result<AgentBuilder<CompletionModel>, Error> {
-    let openai_client = ollama::Client::new(Nothing)?;
+    let ollama_client = ollama::Client::new(Nothing)?;
 
-    let builder = openai_client
+    let builder = ollama_client
         .agent(model)
         .preamble(system_message.unwrap_or_default())
         .temperature(temperature.unwrap_or_default())
