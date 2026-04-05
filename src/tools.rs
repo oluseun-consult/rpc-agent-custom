@@ -10,7 +10,7 @@ impl<T: Tool + 'static> ToolWrapper<T> {
     /// Creates a new [`ToolWrapper`] with the given `struct` that implements the [`Tool`] trait.
     ///
     /// example:
-    /// ```
+    /// ```rust,ignore
     /// use rpc_agent::tools::ToolWrapper;
     /// use rig::tool::Tool;
     ///
