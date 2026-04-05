@@ -32,7 +32,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rpc-agent = "0.1.1"
+rpc-agent = "0.1.2"
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 ```
 
