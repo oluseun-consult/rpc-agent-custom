@@ -3,12 +3,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rpc_agent::error::ApiError;
+use rpc_agent::{Message, error::ApiError};
 use tarpc::{client, context, serde_transport::tcp, tokio_serde::formats::Json};
 
 #[tarpc::service]
 pub trait AgentWorker {
-    async fn message(user_message: String) -> Result<String, ApiError>;
+    async fn message(user_message: Message) -> Result<String, ApiError>;
 }
 
 #[tokio::main]
@@ -22,7 +22,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut ctx = context::current();
     ctx.deadline = Instant::now() + Duration::from_secs(120);
     let response = client
-        .message(ctx, "what the price ticket to london".to_string())
+        .message(
+            ctx,
+            Message::Text("what the price ticket to london".to_string()),
+        )
         .await??;
 
     println!("Server response: {}", response);

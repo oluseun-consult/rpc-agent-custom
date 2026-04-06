@@ -8,6 +8,7 @@
 mod agent;
 mod builder;
 pub mod error;
+mod message;
 mod providers;
 mod tools;
 
@@ -25,3 +26,5 @@ pub use agent::AgentServer;
 
 /// Enum of supported AI providers.
 pub use providers::Providers;
+
+pub use message::Message;

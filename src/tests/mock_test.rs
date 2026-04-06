@@ -1,6 +1,7 @@
 use crate::AgentServer;
 use crate::agent::AgentWorker;
 use crate::error::Error;
+use crate::message::Message;
 use crate::providers::CompletionProvider;
 use rig::tool::Tool;
 use std::net::{Ipv4Addr, SocketAddr};
@@ -52,6 +53,8 @@ async fn agent_server_mock_message() {
     let provider = Arc::new(Box::new(DummyProvider) as Box<dyn CompletionProvider>);
     let agent = AgentServer::new(SocketAddr::from((Ipv4Addr::LOCALHOST, 12345)), provider);
     let ctx = tarpc::context::current();
-    let result = agent.message(ctx, "test mock".to_string()).await;
+    let result = agent
+        .message(ctx, Message::Text("test mock".to_string()))
+        .await;
     assert_eq!(result.unwrap(), "MOCK: test mock");
 }

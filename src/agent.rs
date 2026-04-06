@@ -9,7 +9,11 @@ use tarpc::{
     tokio_serde::formats::Json,
 };
 
-use crate::{error::ApiError, error::Error, providers::CompletionProvider};
+use crate::{
+    error::{ApiError, Error},
+    message::Message,
+    providers::CompletionProvider,
+};
 
 #[derive(Clone)]
 pub struct AgentServer {
@@ -64,7 +68,7 @@ impl AgentServer {
 
 #[tarpc::service]
 pub(crate) trait AgentWorker {
-    async fn message(user_message: String) -> Result<String, ApiError>;
+    async fn message(user_message: Message) -> Result<String, ApiError>;
 }
 
 impl AgentWorker for AgentServer {
@@ -72,11 +76,11 @@ impl AgentWorker for AgentServer {
     async fn message(
         self,
         _context: ::tarpc::context::Context,
-        user_message: String,
+        user_message: Message,
     ) -> Result<String, ApiError> {
         println!("Message received");
         self.providers
-            .chat(&user_message)
+            .chat(&user_message.to_string())
             .await
             .map_err(ApiError::from)
     }

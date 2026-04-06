@@ -21,6 +21,9 @@ pub enum Error {
     /// IO error: an I/O error occurred.
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+    /// RPC error: a remote procedure call error occurred.
+    #[error("rpc error: {0}")]
+    RpcError(#[from] tarpc::client::RpcError),
 }
 
 /// API error type used for provider-specific error responses.
@@ -58,6 +61,10 @@ impl From<Error> for ApiError {
             Error::AuthenticationError(e) => ApiError {
                 status: 401,
                 message: e,
+            },
+            Error::RpcError(server_error) => ApiError {
+                status: 500,
+                message: server_error.to_string(),
             },
         }
     }
