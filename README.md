@@ -66,6 +66,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ---
 
+## Feature Flag
+
+**`tracing`**: Enables tracing for logging request/response traces. It requires a `RUST_LOG` environment variable to be set.
+
 ## Contributing
 
 Pull requests and issues are welcome! Please open an issue to discuss your ideas or report bugs.

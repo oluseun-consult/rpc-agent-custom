@@ -28,6 +28,10 @@ impl AgentServer {
             tarpc::serde_transport::tcp::listen(self.socket_addr, Json::default).await?;
         listener.config_mut().max_frame_length(usize::MAX);
 
+        #[cfg(feature = "tracing")]
+        tracing::info!("Listening on: {}", listener.local_addr());
+
+        #[cfg(not(feature = "tracing"))]
         println!("Listening on: {}", listener.local_addr());
 
         listener
@@ -73,6 +77,10 @@ pub(crate) trait AgentWorker {
 
 impl AgentWorker for AgentServer {
     /// Handles a user message by passing it to the completion provider and returning the response.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(name = "agent.message", skip(self, _context, user_message))
+    )]
     async fn message(
         self,
         _context: ::tarpc::context::Context,

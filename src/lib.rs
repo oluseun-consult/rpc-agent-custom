@@ -28,7 +28,11 @@
 //!    Ok(())
 //!}
 //!```
-
+//!
+//! ## Feature Flags
+//!
+//! `tracing`: Enables `tracing` instrumentation for request/response traces.
+//!
 mod agent;
 mod builder;
 pub mod error;

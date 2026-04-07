@@ -23,7 +23,12 @@ schemars = "1.2.1"
 
 thiserror = "2.0.18"
 
+tracing = { version = "0.1.44", optional = true }
+
 jsonwebtoken = "9.3.1"
+
+[features]
+tracing = ["dep:tracing"]
 
 [dev-dependencies]
 serial_test = "3.4.0"

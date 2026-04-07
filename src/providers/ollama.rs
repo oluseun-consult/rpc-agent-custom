@@ -89,6 +89,10 @@ impl OllamaAI {
 
 #[async_trait::async_trait]
 impl CompletionProvider for OllamaAI {
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(name = "ollama.chat", skip(self, prompt))
+    )]
     async fn chat(&self, prompt: &str) -> Result<String, Error> {
         let response = self.agent.prompt(prompt).await?;
         Ok(response)
