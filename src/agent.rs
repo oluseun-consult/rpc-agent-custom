@@ -78,10 +78,7 @@ impl AgentWorker for AgentServer {
         _context: ::tarpc::context::Context,
         user_message: Message,
     ) -> Result<String, ApiError> {
-        println!("Message received");
-        self.providers
-            .chat(&user_message.to_string())
-            .await
-            .map_err(ApiError::from)
+        let prompt: String = user_message.try_into()?;
+        self.providers.chat(&prompt).await.map_err(ApiError::from)
     }
 }

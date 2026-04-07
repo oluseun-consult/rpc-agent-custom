@@ -24,6 +24,26 @@ pub enum Error {
     /// RPC error: a remote procedure call error occurred.
     #[error("rpc error: {0}")]
     RpcError(#[from] tarpc::client::RpcError),
+    /// Invalid JWT credentials: the JWT token is invalid or expired.
+    #[error("invalid jwt credentials: {0}")]
+    InvalidJWTCredentials(#[from] jsonwebtoken::errors::Error),
+    /// No JWT secret found: the JWT secret is not configured.
+    #[error("no jwt secret found")]
+    NoJWTSecretFound,
+}
+
+impl Error {
+    fn status(&self) -> u16 {
+        match self {
+            Error::AuthenticationError(_) | Error::InvalidJWTCredentials(_) => 401,
+            Error::HttpError(_)
+            | Error::Io(_)
+            | Error::PromptError(_)
+            | Error::RpcError(_)
+            | Error::ProviderError(_)
+            | Error::NoJWTSecretFound => 500,
+        }
+    }
 }
 
 /// API error type used for provider-specific error responses.
@@ -41,31 +61,9 @@ impl Display for ApiError {
 
 impl From<Error> for ApiError {
     fn from(value: Error) -> Self {
-        match value {
-            Error::ProviderError(e) => ApiError {
-                status: 500,
-                message: e,
-            },
-            Error::HttpError(error) => ApiError {
-                status: 500,
-                message: error.to_string(),
-            },
-            Error::PromptError(prompt_error) => ApiError {
-                status: 500,
-                message: prompt_error.to_string(),
-            },
-            Error::Io(error) => ApiError {
-                status: 500,
-                message: error.to_string(),
-            },
-            Error::AuthenticationError(e) => ApiError {
-                status: 401,
-                message: e,
-            },
-            Error::RpcError(server_error) => ApiError {
-                status: 500,
-                message: server_error.to_string(),
-            },
+        Self {
+            status: value.status(),
+            message: value.to_string(),
         }
     }
 }
