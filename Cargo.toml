@@ -23,6 +23,8 @@ schemars = "1.2.1"
 
 thiserror = "2.0.18"
 
+tracing = "0.1.44"
+
 jsonwebtoken = "9.3.1"
 
 [dev-dependencies]

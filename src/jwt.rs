@@ -5,6 +5,7 @@ use crate::error::Error;
 
 /// JWT token decoder
 /// Decodes a JWT token and returns the claims if valid.
+#[tracing::instrument(name = "jwt.decode", skip(token, hmac_secret))]
 pub(crate) fn decode_jwt(token: &str, hmac_secret: &str) -> Result<Claims, Error> {
     let validation = jsonwebtoken::Validation::new(Algorithm::HS256);
 

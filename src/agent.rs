@@ -28,7 +28,7 @@ impl AgentServer {
             tarpc::serde_transport::tcp::listen(self.socket_addr, Json::default).await?;
         listener.config_mut().max_frame_length(usize::MAX);
 
-        println!("Listening on: {}", listener.local_addr());
+        tracing::info!("Listening on: {}", listener.local_addr());
 
         listener
             .map_err(|e| eprintln!("{}", e)) // TODO: Improve error handling.
@@ -73,6 +73,7 @@ pub(crate) trait AgentWorker {
 
 impl AgentWorker for AgentServer {
     /// Handles a user message by passing it to the completion provider and returning the response.
+    #[tracing::instrument(name = "agent.message", skip(self, _context, user_message))]
     async fn message(
         self,
         _context: ::tarpc::context::Context,
