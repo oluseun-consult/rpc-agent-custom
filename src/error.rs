@@ -32,7 +32,7 @@ pub enum Error {
     #[error("no jwt secret found")]
     NoJWTSecretFound,
     /// Invoke error: an AWS error occurred during the invoke endpoint operation.
-    #[error("invoke error: an AWS error occurred during the invoke endpoint operation {0}")]
+    #[error("invoke error: an AWS error occurred during the invoke endpoint operation: {0:?}")]
     InvokeError(#[from] Box<SdkError<InvokeEndpointError>>),
     /// Serialization error: failed to serialize the request payload.
     #[error("serialization error: {0}")]
