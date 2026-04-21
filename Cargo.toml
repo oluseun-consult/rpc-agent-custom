@@ -21,6 +21,10 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.117"
 schemars = "1.2.1"
 
+aws-sdk-sagemakerruntime = "1"
+aws-sdk-sagemaker = "1"
+aws-config = { version = "1", features = ["behavior-version-latest"] }
+
 thiserror = "2.0.18"
 
 tracing = { version = "0.1.44", optional = true }

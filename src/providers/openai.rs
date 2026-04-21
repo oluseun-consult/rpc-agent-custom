@@ -9,17 +9,17 @@ use schemars::JsonSchema;
 
 use crate::{error::Error, providers::CompletionProvider, tools::ToolWrapper};
 
-pub struct OpenAIProvider {
+struct OpenAIProvider {
     api_key: String,
     model: String,
 }
 
 impl OpenAIProvider {
-    pub fn new(api_key: String, model: String) -> Self {
+    fn new(api_key: String, model: String) -> Self {
         Self { api_key, model }
     }
 
-    pub fn build<T: Tool + 'static>(
+    fn build<T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
@@ -43,7 +43,7 @@ impl OpenAIProvider {
         Ok(OpenAI { agent })
     }
 
-    pub fn build_with_schema<J: JsonSchema, T: Tool + 'static>(
+    fn build_with_schema<J: JsonSchema, T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
@@ -114,7 +114,7 @@ impl CompletionProvider for OpenAI {
     }
 }
 
-pub fn builder(
+fn builder(
     api_key: &str,
     model: &str,
     system_message: Option<&str>,
@@ -132,7 +132,7 @@ pub fn builder(
     Ok(builder)
 }
 
-pub fn builder_with_tools<T: Tool + 'static>(
+fn builder_with_tools<T: Tool + 'static>(
     builder: AgentBuilder<ResponsesCompletionModel>,
     tool: ToolWrapper<T>,
 ) -> Result<AgentBuilder<ResponsesCompletionModel, (), WithBuilderTools>, Error> {

@@ -7,9 +7,11 @@ use crate::{ToolWrapper, error::Error};
 
 mod ollama;
 mod openai;
+mod sagemaker;
 
 #[async_trait::async_trait]
 pub trait CompletionProvider: Send + Sync {
+    /// Returns a chat response for the given prompt.
     async fn chat(&self, prompt: &str) -> Result<String, Error>;
 }
 
@@ -19,6 +21,13 @@ pub enum Providers {
     Ollama,
     /// OpenAI provider: cloud-based AI model inference.
     OpenAI,
+    /// Custom SageMaker AI provider: cloud-based AI model inference using SageMaker.
+    ///
+    /// The following environment variables must be set:
+    /// - `AWS_ACCESS_KEY_ID`: the AWS access key ID to use.
+    /// - `AWS_SECRET_ACCESS_KEY`: the AWS secret access key to use.
+    /// - `AWS_REGION`: the AWS region to use.
+    CustomSageMakerAI,
 }
 
 impl Display for Providers {
@@ -26,6 +35,7 @@ impl Display for Providers {
         match self {
             Providers::Ollama => write!(f, "ollama"),
             Providers::OpenAI => write!(f, "openai"),
+            Providers::CustomSageMakerAI => write!(f, "sagemaker"),
         }
     }
 }
@@ -35,8 +45,9 @@ impl From<&str> for Providers {
         match value.to_lowercase().as_str() {
             "ollama" => Providers::Ollama,
             "openai" => Providers::OpenAI,
+            "sagemaker" => Providers::CustomSageMakerAI,
             _ => panic!(
-                "unknown provider: {}. Currently supported providers are: ollama, openai",
+                "unknown provider: {}. Currently supported providers are: ollama, openai, sagemaker",
                 value
             ),
         }
@@ -44,7 +55,7 @@ impl From<&str> for Providers {
 }
 
 impl Providers {
-    pub(crate) fn init<T: Tool + 'static>(
+    pub(crate) async fn init<T: Tool + 'static>(
         provider: Providers,
         model: &str,
         api_key: Option<&str>,
@@ -79,6 +90,10 @@ impl Providers {
                     max_tokens,
                     tool,
                 )?;
+                Ok(Box::new(client))
+            }
+            Providers::CustomSageMakerAI => {
+                let client = sagemaker::CustomSageMakerAI::build_sagemaker_client(model).await;
                 Ok(Box::new(client))
             }
         }
@@ -120,6 +135,9 @@ impl Providers {
                     tool,
                 )?;
                 Ok(Box::new(client))
+            }
+            Providers::CustomSageMakerAI => {
+                unimplemented!("Does not support Schema responses")
             }
         }
     }

@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use aws_sdk_sagemakerruntime::{error::SdkError, operation::invoke_endpoint::InvokeEndpointError};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -30,6 +31,12 @@ pub enum Error {
     /// No JWT secret found: the JWT secret is not configured.
     #[error("no jwt secret found")]
     NoJWTSecretFound,
+    /// Invoke error: an AWS error occurred during the invoke endpoint operation.
+    #[error("invoke error: an AWS error occurred during the invoke endpoint operation {0}")]
+    InvokeError(#[from] Box<SdkError<InvokeEndpointError>>),
+    /// Serialization error: failed to serialize the request payload.
+    #[error("serialization error: {0}")]
+    SerializationError(#[from] serde_json::Error),
 }
 
 impl Error {
@@ -41,7 +48,9 @@ impl Error {
             | Error::PromptError(_)
             | Error::RpcError(_)
             | Error::ProviderError(_)
-            | Error::NoJWTSecretFound => 500,
+            | Error::NoJWTSecretFound
+            | Error::InvokeError(_)
+            | Error::SerializationError(_) => 500,
         }
     }
 }

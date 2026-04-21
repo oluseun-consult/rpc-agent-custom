@@ -56,7 +56,7 @@ impl<'a> AgentServerBuilder<'a> {
     }
 
     /// Builds the [`AgentServer`] with the given configuration.
-    pub fn build(self) -> Result<AgentServer, Error> {
+    pub async fn build(self) -> Result<AgentServer, Error> {
         let providers = Providers::init::<NoTool>(
             self.provider,
             self.model,
@@ -65,7 +65,8 @@ impl<'a> AgentServerBuilder<'a> {
             self.temperature,
             self.max_tokens,
             None,
-        )?;
+        )
+        .await?;
 
         Ok(AgentServer {
             socket_addr: SocketAddr::from(([0, 0, 0, 0], self.port)),
@@ -92,7 +93,7 @@ impl<'a> AgentServerBuilder<'a> {
     }
 
     /// Builds the [`AgentServer`] with the given configuration and tool.
-    pub fn build_with_tool<T: Tool + 'static>(
+    pub async fn build_with_tool<T: Tool + 'static>(
         self,
         tool: ToolWrapper<T>,
     ) -> Result<AgentServer, Error> {
@@ -104,7 +105,8 @@ impl<'a> AgentServerBuilder<'a> {
             self.temperature,
             self.max_tokens,
             Some(tool),
-        )?;
+        )
+        .await?;
 
         Ok(AgentServer {
             socket_addr: SocketAddr::from(([0, 0, 0, 0], self.port)),

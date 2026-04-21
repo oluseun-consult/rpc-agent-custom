@@ -37,7 +37,7 @@ fn tool_wrapper_new() {
 async fn agent_server_builder_success() {
     let builder = AgentServerBuilder::new(8080, Providers::Ollama, "sys", "model");
     let server = builder.build();
-    assert!(server.is_ok());
+    assert!(server.await.is_ok());
 }
 
 #[tokio::test]
@@ -45,12 +45,12 @@ async fn agent_server_builder_success() {
 async fn agent_server_builder_openai_missing_api_key() {
     let builder = AgentServerBuilder::new(8080, Providers::OpenAI, "sys", "model");
     // Should panic due to missing API key
-    let _ = builder.build().unwrap();
+    let _ = builder.build().await.unwrap();
 }
 
 #[tokio::test]
 async fn agent_server_builder_openai_with_api_key() {
     let builder = AgentServerBuilder::new(8080, Providers::OpenAI, "sys", "model").api_key("dummy");
     let server = builder.build();
-    assert!(server.is_ok());
+    assert!(server.await.is_ok());
 }

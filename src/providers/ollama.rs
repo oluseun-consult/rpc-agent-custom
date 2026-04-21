@@ -9,16 +9,16 @@ use schemars::JsonSchema;
 
 use crate::{error::Error, providers::CompletionProvider, tools::ToolWrapper};
 
-pub struct OllamaProvider {
+struct OllamaProvider {
     model: String,
 }
 
 impl OllamaProvider {
-    pub fn new(model: String) -> Self {
+    fn new(model: String) -> Self {
         Self { model }
     }
 
-    pub fn build<T: Tool + 'static>(
+    fn build<T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
@@ -36,7 +36,7 @@ impl OllamaProvider {
         Ok(OllamaAI { agent })
     }
 
-    pub fn build_with_schema<J: JsonSchema, T: Tool + 'static>(
+    fn build_with_schema<J: JsonSchema, T: Tool + 'static>(
         &self,
         system_message: Option<&str>,
         temperature: Option<f64>,
@@ -58,7 +58,7 @@ impl OllamaProvider {
 
 #[derive(Clone)]
 pub struct OllamaAI {
-    pub agent: Agent<CompletionModel>,
+    agent: Agent<CompletionModel>,
 }
 
 impl OllamaAI {
@@ -99,7 +99,7 @@ impl CompletionProvider for OllamaAI {
     }
 }
 
-pub fn builder(
+fn builder(
     model: &str,
     system_message: Option<&str>,
     temperature: Option<f64>,
@@ -125,7 +125,7 @@ pub fn builder(
     Ok(builder)
 }
 
-pub fn builder_with_tools<T: Tool + 'static>(
+fn builder_with_tools<T: Tool + 'static>(
     builder: AgentBuilder<CompletionModel>,
     tool: ToolWrapper<T>,
 ) -> Result<AgentBuilder<CompletionModel, (), WithBuilderTools>, Error> {
