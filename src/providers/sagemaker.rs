@@ -37,14 +37,28 @@ impl CustomSageMakerAI {
             .content_type("application/json")
             .body(Blob::new(payload))
             .send()
-            .await
-            .map_err(|e| Error::InvokeError(Box::new(e)))?;
+            .await;
 
-        let result = resp.body.unwrap_or_default().into_inner();
+        match resp {
+            Ok(resp) => {
+                let result = resp.body.unwrap_or_default().into_inner();
+                let response = String::from_utf8(result).unwrap_or_default();
+                Ok(response)
+            }
+            Err(e) => {
+                #[cfg(feature = "tracing")]
+                match e {
+                    SdkError::ServiceError(err) => {
+                        let body_str =
+                            std::str::from_utf8(err.raw().body().bytes().unwrap_or_default());
 
-        let response = String::from_utf8(result).unwrap_or_default();
-
-        Ok(response)
+                        tracing::warn!("SageMaker error body: {}", body_str);
+                    }
+                    _ => (),
+                }
+                Err(Error::InvokeError(Box::new(e)))
+            }
+        }
     }
 }
 
