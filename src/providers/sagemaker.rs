@@ -47,15 +47,13 @@ impl CustomSageMakerAI {
             }
             Err(e) => {
                 #[cfg(feature = "tracing")]
-                match e {
-                    aws_sdk_sagemakerruntime::error::SdkError::ServiceError(ref err) => {
-                        let body_str =
-                            std::str::from_utf8(err.raw().body().bytes().unwrap_or_default());
+                if let aws_sdk_sagemakerruntime::error::SdkError::ServiceError(ref err) = e {
+                    let body_str =
+                        std::str::from_utf8(err.raw().body().bytes().unwrap_or_default());
 
-                        tracing::warn!("SageMaker error body: {:?}", body_str);
-                    }
-                    _ => (),
+                    tracing::warn!("SageMaker error body: {:?}", body_str);
                 }
+
                 Err(Error::InvokeError(Box::new(e)))
             }
         }
