@@ -18,6 +18,7 @@ pub struct AgentServerBuilder<'a> {
     api_key: Option<&'a str>,
     temperature: Option<f64>,
     max_tokens: Option<u64>,
+    python_path: Option<String>,
 }
 
 impl<'a> AgentServerBuilder<'a> {
@@ -31,6 +32,7 @@ impl<'a> AgentServerBuilder<'a> {
             api_key: None,
             temperature: None,
             max_tokens: None,
+            python_path: None,
         }
     }
 
@@ -55,6 +57,13 @@ impl<'a> AgentServerBuilder<'a> {
         self
     }
 
+    /// Sets the Python path for the provider.
+    #[inline]
+    pub fn python_path(mut self, python_path: String) -> Self {
+        self.python_path = Some(python_path);
+        self
+    }
+
     /// Builds the [`AgentServer`] with the given configuration.
     pub async fn build(self) -> Result<AgentServer, Error> {
         let providers = Providers::init::<NoTool>(
@@ -65,6 +74,7 @@ impl<'a> AgentServerBuilder<'a> {
             self.temperature,
             self.max_tokens,
             None,
+            self.python_path,
         )
         .await?;
 
@@ -105,6 +115,7 @@ impl<'a> AgentServerBuilder<'a> {
             self.temperature,
             self.max_tokens,
             Some(tool),
+            None,
         )
         .await?;
 

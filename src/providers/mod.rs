@@ -5,6 +5,7 @@ use schemars::JsonSchema;
 
 use crate::{ToolWrapper, error::Error};
 
+mod local_inference;
 mod ollama;
 mod openai;
 mod sagemaker;
@@ -28,6 +29,7 @@ pub enum Providers {
     /// - `AWS_SECRET_ACCESS_KEY`: the AWS secret access key to use.
     /// - `AWS_REGION`: the AWS region to use.
     CustomSageMakerAI,
+    LocalInference,
 }
 
 impl Display for Providers {
@@ -36,6 +38,7 @@ impl Display for Providers {
             Providers::Ollama => write!(f, "ollama"),
             Providers::OpenAI => write!(f, "openai"),
             Providers::CustomSageMakerAI => write!(f, "sagemaker"),
+            Providers::LocalInference => write!(f, "local"),
         }
     }
 }
@@ -46,8 +49,9 @@ impl From<&str> for Providers {
             "ollama" => Providers::Ollama,
             "openai" => Providers::OpenAI,
             "sagemaker" => Providers::CustomSageMakerAI,
+            "local" => Providers::LocalInference,
             _ => panic!(
-                "unknown provider: {}. Currently supported providers are: ollama, openai, sagemaker",
+                "unknown provider: {}. Currently supported providers are: ollama, openai, sagemaker, local",
                 value
             ),
         }
@@ -63,6 +67,7 @@ impl Providers {
         temperature: Option<f64>,
         max_tokens: Option<u64>,
         tool: Option<ToolWrapper<T>>,
+        python_path: Option<String>,
     ) -> Result<Box<dyn CompletionProvider>, Error> {
         match provider {
             Providers::Ollama => {
@@ -94,6 +99,15 @@ impl Providers {
             }
             Providers::CustomSageMakerAI => {
                 let client = sagemaker::CustomSageMakerAI::build_sagemaker_client(model).await;
+                Ok(Box::new(client))
+            }
+            Providers::LocalInference => {
+                let client = local_inference::LocalInferenceAI::setup(
+                    model,
+                    python_path.unwrap_or("./.venv/bin/python".to_owned()),
+                )
+                .await;
+
                 Ok(Box::new(client))
             }
         }
@@ -137,6 +151,9 @@ impl Providers {
                 Ok(Box::new(client))
             }
             Providers::CustomSageMakerAI => {
+                unimplemented!("Does not support Schema responses")
+            }
+            Providers::LocalInference => {
                 unimplemented!("Does not support Schema responses")
             }
         }

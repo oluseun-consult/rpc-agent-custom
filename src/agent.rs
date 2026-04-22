@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use futures::{StreamExt as _, TryStreamExt, future};
+use futures::{StreamExt as _, future};
 use tarpc::{
     server::{self, Channel as _, incoming::Incoming as _},
     tokio_serde::formats::Json,
@@ -35,10 +35,8 @@ impl AgentServer {
         println!("Listening on: {}", listener.local_addr());
 
         listener
-            .map_err(|e| eprintln!("{}", e)) // TODO: Improve error handling.
             .filter_map(|r| future::ready(r.ok()))
             .map(server::BaseChannel::with_defaults)
-            // Limit channels to 1 per IP.
             .max_channels_per_key(1, |t| {
                 t.transport()
                     .peer_addr()
