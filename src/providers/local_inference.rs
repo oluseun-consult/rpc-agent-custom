@@ -10,7 +10,6 @@ use crate::{error::Error, providers::CompletionProvider};
 pub struct LocalInferenceAI {
     pub function: String,
     pub script_name: String,
-    pub model_dir: String,
 }
 
 #[derive(serde::Serialize)]
@@ -21,11 +20,10 @@ struct LocalInferenceResult {
 
 impl LocalInferenceAI {
     /// Sets up a new LocalInferenceAI client using the provided model directory.
-    pub async fn setup(model_dir: &str, script_name: String, function: String) -> Self {
+    pub async fn setup(script_name: String, function: String) -> Self {
         Self {
             function,
             script_name,
-            model_dir: model_dir.to_string(),
         }
     }
 
@@ -36,7 +34,7 @@ impl LocalInferenceAI {
             // Get the predict function and call it with a tuple argument
             let result = inference
                 .getattr(self.function.as_str())?
-                .call1((prompt, &self.model_dir))?;
+                .call1((prompt,))?;
             let result_dict = result.downcast::<PyDict>()?;
             let label: String = result_dict.get_item("label")?.extract()?;
             let score: f64 = result_dict.get_item("score")?.extract()?;

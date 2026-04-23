@@ -108,7 +108,6 @@ impl Providers {
             }
             Providers::LocalInference => {
                 let client = local_inference::LocalInferenceAI::setup(
-                    model, // model directory
                     script_name.unwrap_or("inference".to_owned()),
                     function_handler.unwrap_or("predict".to_owned()), // Function name
                 )
