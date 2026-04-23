@@ -45,6 +45,9 @@ mod tools;
 #[cfg(test)]
 mod tests;
 
+#[cfg(test)]
+pub use providers::LocalInferenceAI;
+
 /// Builder for configuring and launching an [`AgentServer`].
 pub use builder::AgentServerBuilder;
 

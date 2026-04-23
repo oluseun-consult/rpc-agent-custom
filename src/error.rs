@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use aws_sdk_sagemakerruntime::{error::SdkError, operation::invoke_endpoint::InvokeEndpointError};
+use pyo3::PyErr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -37,6 +38,8 @@ pub enum Error {
     /// Serialization error: failed to serialize the request payload.
     #[error("serialization error: {0}")]
     SerializationError(#[from] serde_json::Error),
+    #[error("local inference error: {0}")]
+    LocalInferenceError(#[from] PyErr),
 }
 
 impl Error {
@@ -50,7 +53,8 @@ impl Error {
             | Error::ProviderError(_)
             | Error::NoJWTSecretFound
             | Error::InvokeError(_)
-            | Error::SerializationError(_) => 500,
+            | Error::SerializationError(_)
+            | Error::LocalInferenceError(_) => 500,
         }
     }
 }

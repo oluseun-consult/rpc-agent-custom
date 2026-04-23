@@ -18,7 +18,8 @@ pub struct AgentServerBuilder<'a> {
     api_key: Option<&'a str>,
     temperature: Option<f64>,
     max_tokens: Option<u64>,
-    python_path: Option<String>,
+    script_name: Option<String>,
+    function_handler: Option<String>,
 }
 
 impl<'a> AgentServerBuilder<'a> {
@@ -32,7 +33,8 @@ impl<'a> AgentServerBuilder<'a> {
             api_key: None,
             temperature: None,
             max_tokens: None,
-            python_path: None,
+            script_name: None,
+            function_handler: None,
         }
     }
 
@@ -59,8 +61,15 @@ impl<'a> AgentServerBuilder<'a> {
 
     /// Sets the Python path for the provider.
     #[inline]
-    pub fn python_path(mut self, python_path: String) -> Self {
-        self.python_path = Some(python_path);
+    pub fn script_name(mut self, python_path: String) -> Self {
+        self.script_name = Some(python_path);
+        self
+    }
+
+    /// Sets the Python path for the provider.
+    #[inline]
+    pub fn function_handler(mut self, function_handler: String) -> Self {
+        self.function_handler = Some(function_handler);
         self
     }
 
@@ -74,7 +83,8 @@ impl<'a> AgentServerBuilder<'a> {
             self.temperature,
             self.max_tokens,
             None,
-            self.python_path,
+            self.script_name,
+            self.function_handler,
         )
         .await?;
 
@@ -115,6 +125,7 @@ impl<'a> AgentServerBuilder<'a> {
             self.temperature,
             self.max_tokens,
             Some(tool),
+            None,
             None,
         )
         .await?;

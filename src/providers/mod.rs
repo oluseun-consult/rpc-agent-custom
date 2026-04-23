@@ -10,6 +10,9 @@ mod ollama;
 mod openai;
 mod sagemaker;
 
+#[cfg(test)]
+pub use local_inference::LocalInferenceAI;
+
 #[async_trait::async_trait]
 pub trait CompletionProvider: Send + Sync {
     /// Returns a chat response for the given prompt.
@@ -72,7 +75,8 @@ impl Providers {
         temperature: Option<f64>,
         max_tokens: Option<u64>,
         tool: Option<ToolWrapper<T>>,
-        python_path: Option<String>,
+        script_name: Option<String>,
+        function_handler: Option<String>,
     ) -> Result<Box<dyn CompletionProvider>, Error> {
         match provider {
             Providers::Ollama => {
@@ -108,8 +112,9 @@ impl Providers {
             }
             Providers::LocalInference => {
                 let client = local_inference::LocalInferenceAI::setup(
-                    model,
-                    python_path.unwrap_or("./.venv/bin/python".to_owned()),
+                    model, // model directory
+                    script_name.unwrap_or("inference".to_owned()),
+                    function_handler.unwrap_or("predict".to_owned()), // Function name
                 )
                 .await;
 
