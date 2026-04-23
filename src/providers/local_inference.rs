@@ -25,7 +25,7 @@ impl LocalInferenceAI {
     pub async fn setup(model_dir: &str, python_path: String) -> Self {
         Self {
             model_dir: model_dir.to_string(),
-            python_path: python_path,
+            python_path,
         }
     }
 

@@ -13,6 +13,10 @@ mod sagemaker;
 #[async_trait::async_trait]
 pub trait CompletionProvider: Send + Sync {
     /// Returns a chat response for the given prompt.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(name = "provider.chat", skip(self, prompt))
+    )]
     async fn chat(&self, prompt: &str) -> Result<String, Error>;
 }
 
@@ -59,6 +63,7 @@ impl From<&str> for Providers {
 }
 
 impl Providers {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) async fn init<T: Tool + 'static>(
         provider: Providers,
         model: &str,
