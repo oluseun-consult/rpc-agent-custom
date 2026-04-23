@@ -78,7 +78,7 @@ impl Providers {
         script_name: Option<String>,
         function_handler: Option<String>,
     ) -> Result<Box<dyn CompletionProvider>, Error> {
-        match provider {
+        let client: Box<dyn CompletionProvider> = match provider {
             Providers::Ollama => {
                 let client = ollama::OllamaAI::new(
                     model,
@@ -87,7 +87,7 @@ impl Providers {
                     max_tokens,
                     tool,
                 )?;
-                Ok(Box::new(client))
+                Box::new(client)
             }
             Providers::OpenAI => {
                 let api_key = api_key.ok_or_else(|| {
@@ -104,11 +104,11 @@ impl Providers {
                     max_tokens,
                     tool,
                 )?;
-                Ok(Box::new(client))
+                Box::new(client)
             }
             Providers::CustomSageMakerAI => {
                 let client = sagemaker::CustomSageMakerAI::build_sagemaker_client(model).await;
-                Ok(Box::new(client))
+                Box::new(client)
             }
             Providers::LocalInference => {
                 let client = local_inference::LocalInferenceAI::setup(
@@ -118,9 +118,11 @@ impl Providers {
                 )
                 .await;
 
-                Ok(Box::new(client))
+                Box::new(client)
             }
-        }
+        };
+    
+        Ok(client)
     }
 
     pub(crate) fn init_with_schema<J: JsonSchema, T: Tool + 'static>(
