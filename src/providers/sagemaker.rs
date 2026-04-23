@@ -62,6 +62,10 @@ impl CustomSageMakerAI {
 
 #[async_trait::async_trait]
 impl CompletionProvider for CustomSageMakerAI {
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(name = "sagemaker.chat", skip(self, prompt))
+    )]
     async fn chat(&self, prompt: &str) -> Result<String, Error> {
         self.invoke(prompt).await
     }

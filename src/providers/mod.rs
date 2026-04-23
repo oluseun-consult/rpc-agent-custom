@@ -16,10 +16,6 @@ pub use local_inference::LocalInferenceAI;
 #[async_trait::async_trait]
 pub trait CompletionProvider: Send + Sync {
     /// Returns a chat response for the given prompt.
-    #[cfg_attr(
-        feature = "tracing",
-        tracing::instrument(name = "provider.chat", skip(self, prompt))
-    )]
     async fn chat(&self, prompt: &str) -> Result<String, Error>;
 }
 
@@ -121,7 +117,7 @@ impl Providers {
                 Box::new(client)
             }
         };
-    
+
         Ok(client)
     }
 

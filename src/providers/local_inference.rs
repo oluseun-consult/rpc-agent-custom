@@ -1,5 +1,3 @@
-use std::ffi::OsStr;
-
 use pyo3::{
     PyResult, Python,
     types::{PyAnyMethods as _, PyDict, PyModule},
@@ -16,20 +14,9 @@ pub struct LocalInferenceAI {
 }
 
 #[derive(serde::Serialize)]
-struct Prompt<'a> {
-    inputs: &'a str,
-}
-
-#[derive(serde::Serialize)]
 struct LocalInferenceResult {
     label: String,
     score: f64,
-}
-
-impl<'a> AsRef<OsStr> for Prompt<'a> {
-    fn as_ref(&self) -> &OsStr {
-        OsStr::new(self.inputs)
-    }
 }
 
 impl LocalInferenceAI {
@@ -49,7 +36,7 @@ impl LocalInferenceAI {
             // Get the predict function and call it with a tuple argument
             let result = inference
                 .getattr(self.function.as_str())?
-                .call1((Prompt { inputs: prompt }.as_ref(), &self.model_dir))?;
+                .call1((prompt, &self.model_dir))?;
             let result_dict = result.downcast::<PyDict>()?;
             let label: String = result_dict.get_item("label")?.extract()?;
             let score: f64 = result_dict.get_item("score")?.extract()?;
@@ -67,6 +54,10 @@ impl LocalInferenceAI {
 
 #[async_trait::async_trait]
 impl CompletionProvider for LocalInferenceAI {
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(name = "local_inference.chat", skip(self, prompt))
+    )]
     async fn chat(&self, prompt: &str) -> Result<String, Error> {
         self.invoke(prompt).await
     }
