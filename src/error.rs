@@ -1,5 +1,18 @@
 use std::fmt::Display;
 
+use aes_gcm::aead;
+use std::error::Error as StdError;
+/// Wrapper for aes_gcm::aead::Error to implement StdError.
+#[derive(Debug)]
+pub struct CipherAeadError(pub aead::Error);
+
+impl std::fmt::Display for CipherAeadError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "cipher decrypt error: {:?}", self.0)
+    }
+}
+
+impl StdError for CipherAeadError {}
 use aws_sdk_sagemakerruntime::{error::SdkError, operation::invoke_endpoint::InvokeEndpointError};
 use pyo3::PyErr;
 use serde::{Deserialize, Serialize};
@@ -40,12 +53,25 @@ pub enum Error {
     SerializationError(#[from] serde_json::Error),
     #[error("local inference error: {0}")]
     LocalInferenceError(#[from] PyErr),
+    #[error("decode error: {0}")]
+    DecodeError(#[from] base64::DecodeError),
+    #[error("decrypt error: {0}")]
+    DecryptError(#[from] rsa::Error),
+    #[error("cipher decrypt error: {0}")]
+    CipherDecryptError(#[from] CipherAeadError),
+    #[error("private key error: {0}")]
+    PrivateKeyError(#[from] rsa::pkcs8::Error),
 }
 
 impl Error {
     fn status(&self) -> u16 {
         match self {
-            Error::AuthenticationError(_) | Error::InvalidJWTCredentials(_) => 401,
+            Error::AuthenticationError(_)
+            | Error::InvalidJWTCredentials(_)
+            | Error::DecodeError(_)
+            | Error::DecryptError(_)
+            | Error::CipherDecryptError(_)
+            | Error::PrivateKeyError(_) => 401,
             Error::HttpError(_)
             | Error::Io(_)
             | Error::PromptError(_)

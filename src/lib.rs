@@ -34,9 +34,9 @@
 //! `tracing`: Enables `tracing` instrumentation for request/response traces.
 //!
 mod agent;
+mod auth;
 mod builder;
 pub mod error;
-mod jwt;
 
 mod message;
 mod providers;

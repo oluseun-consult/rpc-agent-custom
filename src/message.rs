@@ -1,7 +1,8 @@
+use rsa::RsaPrivateKey;
 use serde_json::Value;
 
+use crate::auth::{EncryptedBundle, decrypt_payload};
 use crate::error::{ApiError, Error};
-use crate::jwt::decode_jwt;
 
 /// Represents a message to be sent to the AI provider.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -18,11 +19,9 @@ pub enum Message {
     Encrypted(String),
 }
 
-impl TryFrom<Message> for String {
-    type Error = ApiError;
-
-    fn try_from(message: Message) -> Result<Self, Self::Error> {
-        match message {
+impl Message {
+    pub fn to_string(self, private_key: RsaPrivateKey) -> Result<String, ApiError> {
+        match self {
             Message::Text(text) => Ok(text),
             Message::Struct(value) => {
                 if let Ok(json) = serde_json::to_string_pretty(&value) {
@@ -32,10 +31,10 @@ impl TryFrom<Message> for String {
                 }
             }
             Message::Encrypted(token) => {
-                let hmac_secret =
-                    std::env::var("JWT_SECRET").map_err(|_| Error::NoJWTSecretFound)?;
+                let bundle: EncryptedBundle = serde_json::from_str(&token)
+                    .map_err(|e| ApiError::from(Error::SerializationError(e)))?;
 
-                let prompt = decode_jwt(&token, &hmac_secret).map(|c| c.prompt)?;
+                let prompt = decrypt_payload(bundle, &private_key)?;
 
                 Ok(prompt)
             }

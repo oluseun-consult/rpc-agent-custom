@@ -30,6 +30,9 @@ thiserror = "2.0.18"
 tracing = { version = "0.1.44", optional = true }
 
 jsonwebtoken = "9.3.1"
+rsa = { version = "0.9", features = ["sha2"] }
+aes-gcm = "0.10"
+base64 = "0.21"
 
 pyo3 = { version = "0.21", features = ["auto-initialize"]}
 
@@ -38,3 +41,5 @@ tracing = ["dep:tracing"]
 
 [dev-dependencies]
 serial_test = "3.4.0"
+rand = "0.8"
+tempfile = "3.10"

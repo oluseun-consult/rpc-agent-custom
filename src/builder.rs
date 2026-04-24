@@ -5,6 +5,7 @@ use schemars::JsonSchema;
 
 use crate::{
     AgentServer, Providers,
+    auth::load_private_key,
     error::Error,
     tools::{NoTool, ToolWrapper},
 };
@@ -20,6 +21,7 @@ pub struct AgentServerBuilder<'a> {
     max_tokens: Option<u64>,
     script_name: Option<String>,
     function_handler: Option<String>,
+    perm_file: Option<&'a str>,
 }
 
 impl<'a> AgentServerBuilder<'a> {
@@ -35,6 +37,7 @@ impl<'a> AgentServerBuilder<'a> {
             max_tokens: None,
             script_name: None,
             function_handler: None,
+            perm_file: None,
         }
     }
 
@@ -73,6 +76,13 @@ impl<'a> AgentServerBuilder<'a> {
         self
     }
 
+    /// Set private key for e2e.
+    #[inline]
+    pub fn perm_file(mut self, perm_file: &'a str) -> Self {
+        self.perm_file = Some(perm_file);
+        self
+    }
+
     /// Builds the [`AgentServer`] with the given configuration.
     pub async fn build(self) -> Result<AgentServer, Error> {
         let providers = Providers::init::<NoTool>(
@@ -88,9 +98,19 @@ impl<'a> AgentServerBuilder<'a> {
         )
         .await?;
 
+        if let Some(perm_file) = self.perm_file {
+            let private_key_path = load_private_key(perm_file)?;
+            return Ok(AgentServer {
+                socket_addr: SocketAddr::from(([0, 0, 0, 0], self.port)),
+                providers: Arc::new(providers),
+                private_key_path: Some(private_key_path),
+            });
+        }
+
         Ok(AgentServer {
             socket_addr: SocketAddr::from(([0, 0, 0, 0], self.port)),
             providers: Arc::new(providers),
+            private_key_path: None,
         })
     }
 
@@ -109,6 +129,7 @@ impl<'a> AgentServerBuilder<'a> {
         Ok(AgentServer {
             socket_addr: SocketAddr::from(([0, 0, 0, 0], self.port)),
             providers: Arc::new(providers),
+            private_key_path: None,
         })
     }
 
@@ -133,6 +154,7 @@ impl<'a> AgentServerBuilder<'a> {
         Ok(AgentServer {
             socket_addr: SocketAddr::from(([0, 0, 0, 0], self.port)),
             providers: Arc::new(providers),
+            private_key_path: None,
         })
     }
 }

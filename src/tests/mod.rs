@@ -1,4 +1,4 @@
-mod jwt;
+mod auth;
 mod local_inference;
 mod mock_test;
 mod unit;

@@ -3,7 +3,9 @@ use crate::agent::AgentWorker;
 use crate::error::Error;
 use crate::message::Message;
 use crate::providers::CompletionProvider;
+use rand::rngs::OsRng;
 use rig::tool::Tool;
+use rsa::RsaPrivateKey;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
@@ -51,7 +53,11 @@ impl CompletionProvider for DummyProvider {
 #[tokio::test]
 async fn agent_server_mock_message() {
     let provider = Arc::new(Box::new(DummyProvider) as Box<dyn CompletionProvider>);
-    let agent = AgentServer::new(SocketAddr::from((Ipv4Addr::LOCALHOST, 12345)), provider);
+    // Generate a dummy private key
+    let mut rng = OsRng;
+    let private_key = RsaPrivateKey::new(&mut rng, 2048).unwrap();
+    let mut agent = AgentServer::new(SocketAddr::from((Ipv4Addr::LOCALHOST, 12345)), provider);
+    agent.private_key_path = Some(private_key);
     let ctx = tarpc::context::current();
     let result = agent
         .message(ctx, Message::Text("test mock".to_string()))

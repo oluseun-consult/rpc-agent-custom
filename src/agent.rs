@@ -4,6 +4,7 @@ use std::{
 };
 
 use futures::{StreamExt as _, future};
+use rsa::RsaPrivateKey;
 use tarpc::{
     server::{self, Channel as _, incoming::Incoming as _},
     tokio_serde::formats::Json,
@@ -19,6 +20,7 @@ use crate::{
 pub struct AgentServer {
     pub(crate) socket_addr: SocketAddr,
     pub(crate) providers: Arc<Box<dyn CompletionProvider>>,
+    pub(crate) private_key_path: Option<RsaPrivateKey>,
 }
 
 impl AgentServer {
@@ -64,6 +66,7 @@ impl AgentServer {
         Self {
             socket_addr,
             providers,
+            private_key_path: None,
         }
     }
 }
@@ -84,7 +87,10 @@ impl AgentWorker for AgentServer {
         _context: ::tarpc::context::Context,
         user_message: Message,
     ) -> Result<String, ApiError> {
-        let prompt: String = user_message.try_into()?;
+        let prompt: String =
+            user_message.to_string(self.private_key_path.ok_or(ApiError::from(
+                Error::AuthenticationError("Private Key Required".to_owned()),
+            ))?)?;
         self.providers.chat(&prompt).await.map_err(ApiError::from)
     }
 }
