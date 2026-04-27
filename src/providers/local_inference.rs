@@ -1,6 +1,7 @@
+use pyo3::prelude::*;
 use pyo3::{
-    PyResult, Python,
-    types::{PyAnyMethods as _, PyDict, PyModule},
+    Py, PyAny, PyResult, Python,
+    types::{PyDict, PyModule},
 };
 
 use crate::{error::Error, providers::CompletionProvider};
@@ -8,8 +9,40 @@ use crate::{error::Error, providers::CompletionProvider};
 #[derive(Clone)]
 /// A custom SageMaker AI client that wraps the AWS SDK for SageMaker.
 pub struct LocalInferenceAI {
-    pub function: String,
-    pub script_name: String,
+    pub local_model: LocalModel,
+}
+
+impl LocalInferenceAI {
+    /// Sets up a new LocalInferenceAI client using the provided model directory.
+    pub async fn setup(script_name: String, function: String) -> Self {
+        Self {
+            local_model: LocalModel::new(&script_name, &function).unwrap(),
+        }
+    }
+
+    /// Invokes the local inference model with the given prompt and returns the response.
+    async fn invoke(&self, prompt: &str) -> Result<String, Error> {
+        let p: PyResult<LocalInferenceResult> = Python::with_gil(|py| {
+            let func = self.local_model.predict_fn.bind(py);
+            let inference = func.call1((prompt,))?;
+
+            let result_dict = inference.downcast::<PyDict>()?;
+            let label: String = result_dict
+                .get_item("label")?
+                .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyKeyError, _>("missing label"))?
+                .extract()?;
+            let score: f64 = result_dict
+                .get_item("score")?
+                .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyKeyError, _>("missing label"))?
+                .extract()?;
+
+            Ok(LocalInferenceResult { label, score })
+        });
+
+        let res: String = p?.try_into()?;
+
+        Ok(res)
+    }
 }
 
 #[derive(serde::Serialize)]
@@ -26,47 +59,21 @@ impl TryFrom<LocalInferenceResult> for String {
     }
 }
 
-impl LocalInferenceAI {
-    /// Sets up a new LocalInferenceAI client using the provided model directory.
-    pub async fn setup(script_name: String, function: String) -> Self {
-        Self {
-            function,
-            script_name,
-        }
-    }
+#[derive(Clone)]
+pub struct LocalModel {
+    predict_fn: Py<PyAny>,
+}
 
-    /// Invokes the local inference model with the given prompt and returns the response.
-    async fn invoke(&self, prompt: &str) -> Result<String, Error> {
-        let p: PyResult<LocalInferenceResult> = Python::with_gil(|py| {
-            let inference = PyModule::import_bound(py, self.script_name.as_str())?;
-            let result = inference.getattr(self.function.as_str())?.call1((prompt,));
-            match result {
-                Ok(obj) => {
-                    let result_dict = obj.downcast::<PyDict>()?;
-                    let label: String = result_dict.get_item("label")?.extract()?;
-                    let score: f64 = result_dict.get_item("score")?.extract()?;
-                    Ok(LocalInferenceResult { label, score })
-                }
-                Err(e) => Err(e),
-            }
-        });
+impl LocalModel {
+    pub fn new(script_name: &str, function: &str) -> PyResult<Self> {
+        Python::with_gil(|py| {
+            let module = PyModule::import_bound(py, script_name)?;
+            let func = module.getattr(function)?;
 
-        // Now handle conversion to your Error type outside the GIL closure
-        let res = match p {
-            Ok(val) => val.try_into()?,
-            Err(e) => {
-                // Try to extract the error string from the PyErr
-                Python::with_gil(|py| {
-                    let msg: String = e
-                        .value_bound(py)
-                        .extract()
-                        .unwrap_or_else(|_| e.to_string());
-                    Err(Error::ProviderError(msg))
-                })?
-            }
-        };
-
-        Ok(res)
+            Ok(Self {
+                predict_fn: func.into_py(py),
+            })
+        })
     }
 }
 

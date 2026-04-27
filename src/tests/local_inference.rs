@@ -10,10 +10,10 @@ async fn local_inference_ai_invoke_returns_serialized_result() {
     assert!(result.is_err());
 }
 
-#[tokio::test]
-async fn local_inference_ai_clone_and_fields() {
-    let ai = LocalInferenceAI::setup("script".to_string(), "func".to_string()).await;
-    let ai2 = ai.clone();
-    assert_eq!(ai2.script_name, "script");
-    assert_eq!(ai2.function, "func");
-}
+// #[tokio::test]
+// async fn local_inference_ai_clone_and_fields() {
+//     let ai = LocalInferenceAI::setup("script".to_string(), "func".to_string()).await;
+//     let ai2 = ai.clone();
+//     assert_eq!(ai2.script_name, "script");
+//     assert_eq!(ai2.function, "func");
+// }
