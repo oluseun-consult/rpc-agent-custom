@@ -35,6 +35,7 @@ aes-gcm = "0.10"
 base64 = "0.21"
 
 pyo3 = { version = "0.21", features = ["auto-initialize"]}
+hex = "0.4.3"
 
 [features]
 tracing = ["dep:tracing"]

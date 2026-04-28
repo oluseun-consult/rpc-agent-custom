@@ -2332,6 +2332,7 @@ dependencies = [
  "aws-sdk-sagemakerruntime",
  "base64 0.21.7",
  "futures",
+ "hex",
  "jsonwebtoken",
  "pyo3",
  "rand 0.8.6",
