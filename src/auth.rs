@@ -26,10 +26,6 @@ pub fn decrypt_payload(
     bundle: EncryptedBundle,
     private_key: &RsaPrivateKey,
 ) -> Result<String, Error> {
-    let _c = format!("{:?}", private_key);
-
-    #[cfg(feature = "tracing")]
-    tracing::info!("Private key decryption starts: {}", _c);
     // 1. Decrypt the AES Key using RSA Private Key
     let encrypted_key = general_purpose::STANDARD.decode(bundle.key)?;
     let decryptor = Oaep::new::<Sha256>();
@@ -43,10 +39,12 @@ pub fn decrypt_payload(
     let iv = general_purpose::STANDARD.decode(bundle.iv)?;
     let nonce = Nonce::from_slice(&iv);
 
-    let ciphertext = general_purpose::STANDARD.decode(bundle.content)?;
-    // (Note: In AES-GCM, the 'tag' is usually appended to the ciphertext)
+    let mut ciphertext = general_purpose::STANDARD.decode(bundle.content)?;
+    let tag = general_purpose::STANDARD.decode(bundle.tag)?;
 
-    // 3. Decrypt the email body
+    // Append tag to ciphertext
+    ciphertext.extend_from_slice(&tag);
+
     let plaintext = cipher
         .decrypt(nonce, ciphertext.as_ref())
         .map_err(|e| Error::CipherDecryptError(crate::error::CipherAeadError(e)))?;
