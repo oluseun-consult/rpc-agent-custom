@@ -26,17 +26,16 @@ pub fn decrypt_payload(
     bundle: EncryptedBundle,
     private_key: &RsaPrivateKey,
 ) -> Result<String, Error> {
+    let c = format!("{:?}", private_key);
+
+    let _trace_pk = c[4..30].to_string();
+    #[cfg(feature = "tracing")]
+    tracing::info!("Private key decryption starts: {}", _trace_pk);
     // 1. Decrypt the AES Key using RSA Private Key
     let encrypted_key = general_purpose::STANDARD.decode(bundle.key)?;
     let decryptor = Oaep::new::<Sha256>();
 
-    #[cfg(feature = "tracing")]
-    tracing::info!("Decrypting starts");
-
     let aes_raw_key = private_key.decrypt(decryptor, &encrypted_key)?;
-
-    #[cfg(feature = "tracing")]
-    tracing::info!("Decrypting done");
 
     // 2. Setup AES-GCM
     let key = Key::<Aes256Gcm>::from_slice(&aes_raw_key);
