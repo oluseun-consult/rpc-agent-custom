@@ -29,18 +29,8 @@ pub fn decrypt_payload(
     // 1. Decrypt the AES Key using RSA Private Key
     let encrypted_key = general_purpose::STANDARD.decode(bundle.key.clone())?;
     let decryptor = Oaep::new::<Sha256>();
-    #[cfg(feature = "tracing")]
-    tracing::info!("encrypted_key (base64): {}", &bundle.key);
-    #[cfg(feature = "tracing")]
-    tracing::info!("encrypted_key (len): {}", encrypted_key.len());
 
     let aes_raw_key = private_key.decrypt(decryptor, &encrypted_key)?;
-    let _hex_encode = hex::encode(&aes_raw_key);
-
-    #[cfg(feature = "tracing")]
-    tracing::info!("aes_raw_key (hex): {}", _hex_encode);
-    #[cfg(feature = "tracing")]
-    tracing::info!("aes_raw_key (len): {}", aes_raw_key.len());
 
     // 2. Setup AES-GCM
     let key = Key::<Aes256Gcm>::from_slice(&aes_raw_key);
@@ -51,30 +41,13 @@ pub fn decrypt_payload(
 
     let mut ciphertext = general_purpose::STANDARD.decode(bundle.content.clone())?;
 
-    #[cfg(feature = "tracing")]
-    tracing::info!("ciphertext+tag (len): {}", ciphertext.len());
-    #[cfg(feature = "tracing")]
-    tracing::info!("ciphertext (base64): {}", &bundle.content);
-    #[cfg(feature = "tracing")]
-    tracing::info!("ciphertext (len): {}", ciphertext.len());
-
     let tag = general_purpose::STANDARD.decode(bundle.tag.clone())?;
-    #[cfg(feature = "tracing")]
-    tracing::info!("tag (base64): {}", &bundle.tag);
-    #[cfg(feature = "tracing")]
-    tracing::info!("tag (len): {}", tag.len());
-
     // Append tag to ciphertext
     ciphertext.extend_from_slice(&tag);
-    #[cfg(feature = "tracing")]
-    tracing::info!("ciphertext+tag (len): {}", ciphertext.len());
 
     let plaintext = cipher
         .decrypt(nonce, ciphertext.as_ref())
         .map_err(|e| Error::CipherDecryptError(crate::error::CipherAeadError(e)))?;
-
-    #[cfg(feature = "tracing")]
-    tracing::info!("plaintext (utf8?): {}", String::from_utf8_lossy(&plaintext));
 
     String::from_utf8(plaintext).map_err(|e| Error::ProviderError(e.to_string()))
 }
