@@ -29,7 +29,12 @@ pub fn decrypt_payload(
     // 1. Decrypt the AES Key using RSA Private Key
     let encrypted_key = general_purpose::STANDARD.decode(bundle.key)?;
     let decryptor = Oaep::new::<Sha256>();
-    let aes_raw_key = private_key.decrypt(decryptor, &encrypted_key)?;
+    let aes_raw_key = private_key
+        .decrypt(decryptor, &encrypted_key)
+        .map_err(|e| {
+            dbg!(&e.to_string());
+            e
+        })?;
 
     // 2. Setup AES-GCM
     let key = Key::<Aes256Gcm>::from_slice(&aes_raw_key);
